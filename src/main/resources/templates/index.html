@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Financeiro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. FONTE LOCAL (GOLDMAN) --- */
+        @font-face {
+            font-family: 'Goldman';
+            /* Certifique-se que o arquivo está na pasta src/main/resources/static/fonts/ */
+            src: url('/fonts/Goldman-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* --- 2. ESTILO GERAL (FUNDO) --- */
+        body {
+            background-color: #1D2144;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden; /* Evita rolagem lateral indesejada */
+        }
+
+        /* --- 3. NAVBAR --- */
+        .navbar-custom {
+            background-color: #1C1C1C;
+            box-shadow: 0px 4px 17.6px 10px rgba(0, 0, 0, 0.25);
+            padding: 15px 0;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            font-family: 'Goldman', cursive;
+            font-size: 34px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        /* --- 4. BOTÕES (Estilo sem "pulo") --- */
+        .btn-custom {
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+
+            /* Borda transparente inicial */
+            border: 2px solid transparent;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-custom:hover {
+            border-color: #ffffff; /* Borda fica branca */
+            filter: brightness(1.2); /* Brilho aumenta */
+            color: white;
+        }
+
+        /* Cores Específicas */
+        .btn-novo { background-color: #213999; }
+        .btn-importar { background-color: #AC2121; }
+        .btn-baixar { background-color: #28692F; }
+        .btn-relatorios { background-color: #444; border-color: #555; }
+
+        /* --- 5. TELA INICIAL (HERO) --- */
+        #heroSection {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            width: 100%;
+        }
+
+        /*.hero-img {
+            width: 90%;
+            max-width: 850px;
+            height: auto;
+            z-index: 2;
+            /* Sombra/Blur seguindo o contorno da logo */
+            filter: drop-shadow(0 0 60px rgba(0, 0, 0, 0.9));
+        }*/
+
+        /* --- 6. PAINEL (DASHBOARD) --- */
+        #dashboardSection {
+            padding-bottom: 50px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Box do Total (Oval) */
+        .box-total {
+            background-color: black;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            border-radius: 100px;
+            padding: 10px 30px;
+            text-align: center;
+            margin: 0 auto;
+            width: fit-content;
+        }
+        .box-total h2 { font-family: 'Goldman', cursive; }
+
+        /* Container de Filtros e Tabela */
+        .main-container {
+            background-color: #333333;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .filter-box {
+            background-color: #666666;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-label { font-weight: 600; margin-bottom: 5px; font-size: 18px; }
+
+        .form-control-custom, .form-select-custom {
+            background-color: white; border-radius: 8px; border: none; height: 45px; color: #333;
+        }
+
+        .btn-filtrar {
+            background-color: #213999;
+            color: white;
+            border-radius: 8px;
+            height: 45px;
+            width: 100%;
+            font-weight: 600;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .btn-filtrar:hover { border-color: #ffffff; filter: brightness(1.2); }
+
+        /* --- 7. TABELA --- */
+        .table-container {
+            background-color: #666666; border-radius: 10px; padding: 0; overflow: hidden;
+        }
+        .table-custom { width: 100%; margin-bottom: 0; color: white; }
+
+        .table-custom thead {
+            background-color: #D9D9D9;
+            color: #2C2A2A;
+            font-weight: 600;
+            font-size: 18px;
+            height: 60px;
+        }
+        .table-custom th, .table-custom td { padding: 15px 20px; vertical-align: middle; }
+
+        /* --- 8. MODAIS --- */
+        .modal-content-custom { background-color: #252525; color: white; border-radius: 15px; }
+        .modal-title { font-family: 'Goldman', cursive; font-size: 24px; }
+        .modal-header { border-bottom: none; padding-top: 25px; }
+
+        .modal-input-label { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .modal-input {
+            background-color: #666;
+            border: 1px solid rgba(211,211,211,0.5);
+            color: white;
+            height: 47px;
+            font-size: 18px;
+        }
+        .modal-input:focus { background-color: #777; color: white; border-color: white; box-shadow: none; }
+        .modal-input::placeholder { color: #ccc; }
+
+        .btn-modal-action {
+            background-color: #213999;
+            color: white;
+            border-radius: 8px;
+            height: 60px;
+            width: 100%;
+            border: none;
+            font-size: 20px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        /* Radio Buttons no Modal de Exportação */
+        .form-check-input:checked {
+            background-color: #28692F;
+            border-color: #28692F;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar-custom">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <a onclick="mostrarInicio()" class="brand-logo">Sistema Financeiro</a>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button onclick="mostrarDashboard()" class="btn btn-custom btn-relatorios">
+                <i class="bi bi-table"></i> Ver Relatórios
+            </button>
+
+            <button type="button" class="btn btn-custom btn-novo" data-bs-toggle="modal" data-bs-target="#modalNovo">
+                <i class="bi bi-plus-lg"></i> Novo Gasto
+            </button>
+
+            <button type="button" class="btn btn-custom btn-importar" data-bs-toggle="modal" data-bs-target="#modalImportar">
+                <i class="bi bi-upload"></i> Importar CSV
+            </button>
+
+            <button type="button" class="btn btn-custom btn-baixar" data-bs-toggle="modal" data-bs-target="#modalExportar">
+                <i class="bi bi-download"></i> Baixar Planilha
+            </button>
+        </div>
+    </div>
+</nav>
+
+
+
+<div id="dashboardSection" class="d-none">
+    <div class="container">
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6 text-center">
+                <div class="box-total">
+                    <span style="color: #aaa; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Total Acumulado</span>
+                    <h2 class="m-0" th:text="'R$ ' + ${#numbers.formatDecimal(totalGeral, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="filter-box">
+                <form action="/" method="get" class="row g-3 align-items-end">
+                    <input type="hidden" name="view" value="dashboard">
+
+                    <div class="col-md-5">
+                        <label class="filter-label">Estabelecimento</label>
+                        <select name="busca" class="form-select form-select-custom">
+                            <option value="">Todos os Estabelecimentos</option>
+                            <option th:each="nome : ${listaNomes}" th:value="${nome}" th:text="${nome}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="filter-label">Mês</label>
+                        <select name="mes" class="form-select form-select-custom">
+                            <option value="">Todos</option>
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="filter-label">Ano</label>
+                        <input type="number" name="ano" class="form-control form-control-custom" value="2025">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-filtrar">Filtrar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="table table-custom">
+                    <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Estabelecimento</th>
+                        <th>Detalhes</th> <th>Valor</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="boleto : ${listaBoletos}">
+                        <td th:text="${#temporals.format(boleto.dataVencimento, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${boleto.estabelecimento}"></td>
+
+                        <td th:text="${boleto.detalhes != null && boleto.detalhes != '' ? boleto.detalhes : '-'}"></td>
+
+                        <td style="font-weight: bold; color: #4ade80;" th:text="'R$ ' + ${#numbers.formatDecimal(boleto.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+                        <td class="text-end pe-4">
+                            <a th:href="@{/deletar(id=${boleto.id})}" class="text-danger text-decoration-none">
+                                <i class="bi bi-trash3-fill" style="font-size: 1.2rem;"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(listaBoletos)}">
+                        <td colspan="5" class="text-center py-5 text-muted">Nenhum registro encontrado.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-custom p-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Gasto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/salvar" method="post">
+                    <div class="mb-4">
+                        <label class="modal-input-label">Estabelecimento</label>
+                        <input class="form-control modal-input" list="datalistOptions" name="estabelecimento" placeholder="Selecione ou digite..." required>
+                        <datalist id="datalistOptions">
+                            <option th:each="nome : ${listaNomes}" th:value="${nome}"></option>
+                        </datalist>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="modal-input-label">Detalhes (Opcional)</label>
+                        <input type="text" name="detalhes" class="form-control modal-input" placeholder="Ex: Conta de Luz, Internet...">
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="modal-input-label">Data</label>
+                            <input type="date" name="dataVencimento" class="form-control modal-input" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="modal-input-label">Valor (R$)</label>
+                            <input type="number" step="0.01" name="valor" class="form-control modal-input" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-modal-action">Adicionar Gasto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImportar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-custom p-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Importar CSV</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/importar" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="modal-input-label">Arquivo CSV</label>
+                        <input type="file" name="file" class="form-control modal-input" style="padding-top: 10px;" accept=".csv" required>
+                        <div class="text-muted small mt-2">Padrão: Data, Estabelecimento, Valor, Detalhes</div>
+                    </div>
+                    <button type="submit" class="btn btn-modal-action" style="background-color: #AC2121;">Carregar Arquivo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExportar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-custom p-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Baixar Relatório</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/exportar" method="get">
+
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="optGeral" value="geral" checked onchange="toggleExportInputs()">
+                            <label class="form-check-label fs-5" for="optGeral">Relatório Completo (Tudo)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="optAnual" value="anual" onchange="toggleExportInputs()">
+                            <label class="form-check-label fs-5" for="optAnual">Por Ano (Ex: 2025)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="optMensal" value="mensal" onchange="toggleExportInputs()">
+                            <label class="form-check-label fs-5" for="optMensal">Por Mês (Ex: Janeiro/2025)</label>
+                        </div>
+                    </div>
+
+                    <div id="exportInputs" class="row mb-3 d-none">
+                        <div class="col-6 d-none" id="divMes">
+                            <label class="text-muted small">Mês</label>
+                            <select name="mes" class="form-select modal-input">
+                                <option value="1">Janeiro</option>
+                                <option value="2">Fevereiro</option>
+                                <option value="3">Março</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maio</option>
+                                <option value="6">Junho</option>
+                                <option value="7">Julho</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                        </div>
+                        <div class="col-12" id="divAno">
+                            <label class="text-muted small">Ano</label>
+                            <input type="number" name="ano" class="form-control modal-input" value="2025">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-modal-action" style="background-color: #28692F;">
+                        <i class="bi bi-download"></i> Download
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Função para mostrar a tela de tabela
+    function mostrarDashboard() {
+        document.getElementById('heroSection').classList.add('d-none');
+        document.getElementById('dashboardSection').classList.remove('d-none');
+    }
+
+    // Função para mostrar a tela inicial
+    function mostrarInicio() {
+        document.getElementById('heroSection').classList.remove('d-none');
+        document.getElementById('dashboardSection').classList.add('d-none');
+        // Limpa URL
+        window.history.pushState({}, document.title, "/");
+    }
+
+    // Lógica de Inicialização (Verifica se deve abrir Tabela ou Home)
+    document.addEventListener("DOMContentLoaded", function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('busca') || params.has('mes') || params.has('ano') || params.get('view') === 'dashboard') {
+            mostrarDashboard();
+        } else {
+            mostrarInicio();
+        }
+    });
+
+    // Lógica do Modal de Exportação (Mostra/Esconde campos)
+    function toggleExportInputs() {
+        const tipo = document.querySelector('input[name="tipo"]:checked').value;
+        const container = document.getElementById('exportInputs');
+        const divMes = document.getElementById('divMes');
+        const divAno = document.getElementById('divAno');
+
+        if (tipo === 'geral') {
+            container.classList.add('d-none');
+        } else {
+            container.classList.remove('d-none');
+
+            if (tipo === 'anual') {
+                // Anual: Mostra Ano (largura total), esconde Mês
+                divMes.classList.add('d-none');
+                divAno.className = 'col-12';
+            } else {
+                // Mensal: Mostra os dois (metade cada)
+                divMes.classList.remove('d-none');
+                divAno.className = 'col-6';
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
