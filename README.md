@@ -6,7 +6,7 @@ Aplicação que automatiza a organização financeira. O usuário insere os gast
 ## Tecnologias
 * **Java**
 * **Maven**
-* * **HTML**
+* **HTML**
 * **CSS**
 * **Spring Boot**
 
